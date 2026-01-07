@@ -1,12 +1,12 @@
 import { useEffect } from "react";
-import { type ScoreDomain, type Prisma } from "@langfuse/shared";
+import { type Prisma } from "@langfuse/shared";
 import { usePostHogClientCapture } from "@/src/features/posthog-analytics/usePostHogClientCapture";
 import useLocalStorage from "@/src/components/useLocalStorage";
 import usePreserveRelativeScroll from "@/src/hooks/usePreserveRelativeScroll";
 import { type MediaReturnType } from "@/src/features/media/validation";
 
 import { ViewModeToggle, type ViewMode } from "./components/ViewModeToggle";
-import { IOPreviewJSON, type IOPreviewJSONProps } from "./IOPreviewJSON";
+import { IOPreviewJSON } from "./IOPreviewJSON";
 import { IOPreviewJSONSimple } from "./IOPreviewJSONSimple";
 import { IOPreviewPretty } from "./IOPreviewPretty";
 import { Button } from "@/src/components/ui/button";
@@ -33,7 +33,6 @@ export interface IOPreviewProps extends ExpansionStateProps {
   input?: Prisma.JsonValue;
   output?: Prisma.JsonValue;
   metadata?: Prisma.JsonValue;
-  outputCorrection?: ScoreDomain;
   // Pre-parsed data (optional, from useParsedObservation hook for performance)
   parsedInput?: unknown;
   parsedOutput?: unknown;
@@ -47,20 +46,11 @@ export interface IOPreviewProps extends ExpansionStateProps {
   hideInput?: boolean;
   currentView?: ViewMode;
   setIsPrettyViewAvailable?: (value: boolean) => void;
-  // Inline comment props (JSON Beta view only)
-  enableInlineComments?: boolean;
-  onAddInlineComment?: IOPreviewJSONProps["onAddInlineComment"];
-  commentedPathsByField?: IOPreviewJSONProps["commentedPathsByField"];
   // Whether to show metadata section in pretty view (default: false)
   // JSON view always shows metadata
   showMetadata?: boolean;
   // Callback to inform parent if virtualization is being used (for scroll handling)
   onVirtualizationChange?: (isVirtualized: boolean) => void;
-  // For CorrectedOutputField
-  observationId?: string;
-  projectId: string;
-  traceId: string;
-  environment?: string;
 }
 
 /**
@@ -79,7 +69,6 @@ export interface IOPreviewProps extends ExpansionStateProps {
 export function IOPreview({
   input,
   output,
-  outputCorrection,
   metadata,
   parsedInput,
   parsedOutput,
@@ -97,15 +86,8 @@ export function IOPreview({
   onInputExpansionChange,
   onOutputExpansionChange,
   setIsPrettyViewAvailable,
-  enableInlineComments,
-  onAddInlineComment,
-  commentedPathsByField,
   showMetadata = false,
   onVirtualizationChange,
-  observationId,
-  projectId,
-  traceId,
-  environment = "default",
 }: IOPreviewProps) {
   const capture = usePostHogClientCapture();
   const [dismissedTraceViewNotifications, setDismissedTraceViewNotifications] =
@@ -139,7 +121,6 @@ export function IOPreview({
   const sharedProps = {
     input,
     output,
-    outputCorrection,
     metadata,
     parsedInput,
     parsedOutput,
@@ -154,10 +135,6 @@ export function IOPreview({
     outputExpansionState,
     onInputExpansionChange,
     onOutputExpansionChange,
-    observationId,
-    projectId,
-    traceId,
-    environment,
   };
 
   // Only show empty state popup for traces (not observations) when there's no input/output
@@ -184,8 +161,8 @@ export function IOPreview({
 
       {/*
        * Conditional rendering based on view mode:
-       * - JSON Beta view: IOPreviewJSON (advanced viewer with virtualization, search, inline comments)
-       * - JSON view: IOPreviewJSONSimple (simple react18-json-view, no virtualization, no comments)
+       * - JSON Beta view: IOPreviewJSON (advanced viewer with virtualization, search)
+       * - JSON view: IOPreviewJSONSimple (simple react18-json-view, no virtualization)
        * - Pretty view: IOPreviewPretty (with ChatML parsing, markdown, tools)
        *
        * Only render the active view to prevent dual DOM tree construction.
@@ -197,7 +174,6 @@ export function IOPreview({
           parsedInput={parsedInput}
           parsedOutput={parsedOutput}
           parsedMetadata={parsedMetadata}
-          outputCorrection={outputCorrection}
           isParsing={isParsing}
           hideIfNull={hideIfNull}
           hideInput={hideInput}
@@ -208,13 +184,6 @@ export function IOPreview({
           onInputExpansionChange={onInputExpansionChange}
           onOutputExpansionChange={onOutputExpansionChange}
           onVirtualizationChange={onVirtualizationChange}
-          enableInlineComments={enableInlineComments}
-          onAddInlineComment={onAddInlineComment}
-          commentedPathsByField={commentedPathsByField}
-          observationId={observationId}
-          projectId={projectId}
-          traceId={traceId}
-          environment={environment}
         />
       ) : selectedView === "json" ? (
         <IOPreviewJSONSimple {...sharedProps} />

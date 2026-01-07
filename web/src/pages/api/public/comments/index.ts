@@ -20,17 +20,14 @@ export default withMiddlewares({
     fn: async ({ body, auth }) => {
       const result = await validateCommentReferenceObject({
         ctx: { prisma, auth },
-        input: {
-          ...body,
-          projectId: auth.scope.projectId,
-        },
+        input: body,
       });
 
       if (result.errorMessage) {
         throw new LangfuseNotFoundError(result.errorMessage);
       }
 
-      // Create comment with content as-is (no mention processing, no inline positioning)
+      // Create comment with content as-is (no mention processing)
       const comment = await prisma.comment.create({
         data: {
           content: body.content,
@@ -83,10 +80,7 @@ export default withMiddlewares({
       });
 
       return {
-        data: comments.map(
-          // Exclude inline positioning fields from public API
-          ({ dataField, path, rangeStart, rangeEnd, ...rest }) => rest,
-        ),
+        data: comments,
         meta: {
           page: query.page,
           limit: query.limit,

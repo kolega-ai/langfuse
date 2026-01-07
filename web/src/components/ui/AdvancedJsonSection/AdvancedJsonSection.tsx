@@ -83,8 +83,6 @@ export interface AdvancedJsonSectionProps {
   /** Additional control buttons in header */
   controlButtons?: React.ReactNode;
 
-  commentedPaths?: Map<string, Array<{ start: number; end: number }>>;
-
   /** Force virtualization on/off (overrides auto-detection) */
   virtualized?: boolean;
 }
@@ -108,7 +106,6 @@ export function AdvancedJsonSection({
   isLoading = false,
   media: _media, // TODO: Implement media attachment support
   controlButtons,
-  commentedPaths,
   virtualized,
 }: AdvancedJsonSectionProps) {
   // String wrap mode state (persisted in localStorage)
@@ -444,9 +441,8 @@ export function AdvancedJsonSection({
               truncateStringsAt={truncateStringsAt}
               isLoading={isLoading}
               scrollContainerRef={scrollContainerRef}
-              virtualized={virtualized}
+              virtualized={virtualized} // Pass through virtualized prop
               className={virtualized !== false ? "h-full" : ""}
-              commentedPaths={commentedPaths}
             />
           )}
         </div>

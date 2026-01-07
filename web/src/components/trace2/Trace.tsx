@@ -30,7 +30,6 @@ export type TraceProps = {
     output: string | null;
   };
   scores: WithStringifiedMetadata<ScoreDomain>[];
-  corrections: ScoreDomain[];
   projectId: string;
   viewType?: "detailed" | "focused";
   context?: "peek" | "fullscreen";
@@ -46,7 +45,6 @@ export function Trace({
   trace,
   observations,
   scores,
-  corrections,
   projectId,
   context,
 }: TraceProps) {
@@ -71,7 +69,6 @@ export function Trace({
         trace={trace}
         observations={observations}
         serverScores={scores}
-        corrections={corrections}
         comments={commentsMap}
       >
         <TraceGraphDataProvider

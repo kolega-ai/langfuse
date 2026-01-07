@@ -7,16 +7,8 @@
 
 import { type JsonValueProps } from "../types";
 import { formatValuePreview } from "../utils/jsonTypes";
-import {
-  highlightTextWithComments,
-  COMMENT_HIGHLIGHT_COLOR,
-} from "../utils/highlightText";
+import { highlightText } from "../utils/searchJson";
 import { TruncatedString } from "./TruncatedString";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/src/components/ui/tooltip";
 
 export function JsonValue({
   value,
@@ -28,18 +20,8 @@ export function JsonValue({
   truncateStringsAt = null,
   highlightStart,
   highlightEnd,
-  commentRanges,
-  valueOffset = 0,
   className,
 }: JsonValueProps) {
-  // Adjust comment ranges from row-relative to value-relative
-  const adjustedCommentRanges = commentRanges
-    ?.map((range) => ({
-      start: Math.max(0, range.start - valueOffset),
-      end: Math.max(0, range.end - valueOffset),
-      preview: range.preview,
-    }))
-    .filter((range) => range.end > 0 && range.start < range.end);
   // For expandable values, show preview text
   if (isExpandable) {
     const preview = formatValuePreview(value);
@@ -95,19 +77,13 @@ export function JsonValue({
             theme={theme}
             highlightStart={highlightStart}
             highlightEnd={highlightEnd}
-            commentRanges={adjustedCommentRanges}
           />
         );
       }
     }
 
     // Mode 2: "nowrap" or Mode 3: "wrap" - render with appropriate whiteSpace
-    const segments = highlightTextWithComments(
-      str,
-      highlightStart,
-      highlightEnd,
-      adjustedCommentRanges,
-    );
+    const segments = highlightText(str, highlightStart, highlightEnd);
 
     return (
       <span
@@ -123,37 +99,18 @@ export function JsonValue({
         }}
       >
         &quot;
-        {segments.map((segment, index) => {
-          const backgroundColor =
-            segment.type === "search"
-              ? theme.searchMatchBackground
-              : segment.type === "comment"
-                ? COMMENT_HIGHLIGHT_COLOR
-                : "transparent";
-
-          const highlightedSpan = (
-            <span key={index} style={{ backgroundColor }}>
-              {segment.text}
-            </span>
-          );
-
-          if (segment.type === "comment" && segment.preview) {
-            return (
-              <Tooltip key={index}>
-                <TooltipTrigger asChild>{highlightedSpan}</TooltipTrigger>
-                <TooltipContent
-                  side="top"
-                  align="start"
-                  className="max-w-xs px-2 py-1 text-xs"
-                >
-                  {segment.preview}
-                </TooltipContent>
-              </Tooltip>
-            );
-          }
-
-          return highlightedSpan;
-        })}
+        {segments.map((segment, index) => (
+          <span
+            key={index}
+            style={{
+              backgroundColor: segment.isHighlight
+                ? theme.searchMatchBackground
+                : "transparent",
+            }}
+          >
+            {segment.text}
+          </span>
+        ))}
         &quot;
       </span>
     );
@@ -175,13 +132,8 @@ export function JsonValue({
     }
   })();
 
-  // Apply search and comment highlighting
-  const segments = highlightTextWithComments(
-    displayValue,
-    highlightStart,
-    highlightEnd,
-    adjustedCommentRanges,
-  );
+  // Apply search highlighting
+  const segments = highlightText(displayValue, highlightStart, highlightEnd);
 
   return (
     <span
@@ -191,37 +143,18 @@ export function JsonValue({
         fontFamily: "monospace",
       }}
     >
-      {segments.map((segment, index) => {
-        const backgroundColor =
-          segment.type === "search"
-            ? theme.searchMatchBackground
-            : segment.type === "comment"
-              ? COMMENT_HIGHLIGHT_COLOR
-              : "transparent";
-
-        const highlightedSpan = (
-          <span key={index} style={{ backgroundColor }}>
-            {segment.text}
-          </span>
-        );
-
-        if (segment.type === "comment" && segment.preview) {
-          return (
-            <Tooltip key={index}>
-              <TooltipTrigger asChild>{highlightedSpan}</TooltipTrigger>
-              <TooltipContent
-                side="top"
-                align="start"
-                className="max-w-xs px-2 py-1 text-xs"
-              >
-                {segment.preview}
-              </TooltipContent>
-            </Tooltip>
-          );
-        }
-
-        return highlightedSpan;
-      })}
+      {segments.map((segment, index) => (
+        <span
+          key={index}
+          style={{
+            backgroundColor: segment.isHighlight
+              ? theme.searchMatchBackground
+              : "transparent",
+          }}
+        >
+          {segment.text}
+        </span>
+      ))}
     </span>
   );
 }

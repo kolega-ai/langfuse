@@ -22,7 +22,6 @@ import {
   convertDateToClickhouseDateTime,
   PreferredClickhouseService,
 } from "../clickhouse/client";
-import { executeWithMutationMonitoring } from "../clickhouse/mutationWaiter";
 import { convertClickhouseToDomain } from "./traces_converters";
 import { clickhouseSearchCondition } from "../queries/clickhouse-sql/search";
 import {
@@ -884,7 +883,16 @@ export const deleteTraces = async (projectId: string, traceIds: string[]) => {
       const query = `
         DELETE FROM traces
         WHERE project_id = {projectId: String}
-        AND id IN ({traceIds: Array(String)});
+        AND id IN ({traceIds: Array(String)})
+        AND (project_id, timestamp, id) IN  (
+	        SELECT
+	          project_id,
+	          timestamp,
+	          id
+	        FROM traces
+	        WHERE project_id = {projectId: String}
+	        AND id IN ({traceIds: Array(String)})
+        );
       `;
       await commandClickhouse({
         query: query,
@@ -955,24 +963,14 @@ export const deleteTracesByProjectId = async (projectId: string) => {
         DELETE FROM traces
         WHERE project_id = {projectId: String};
       `;
-
-      if (env.LANGFUSE_ASYNC_DELETE_TRACKING_ENABLED === "true") {
-        await executeWithMutationMonitoring({
-          tableName: "traces",
-          query,
-          params: input.params,
-          tags: input.tags,
-        });
-      } else {
-        await commandClickhouse({
-          query,
-          params: input.params,
-          clickhouseConfigs: {
-            request_timeout: env.LANGFUSE_CLICKHOUSE_DELETION_TIMEOUT_MS,
-          },
-          tags: input.tags,
-        });
-      }
+      await commandClickhouse({
+        query: query,
+        params: input.params,
+        clickhouseConfigs: {
+          request_timeout: env.LANGFUSE_CLICKHOUSE_DELETION_TIMEOUT_MS,
+        },
+        tags: input.tags,
+      });
     },
   });
 };

@@ -33,7 +33,6 @@ interface TraceDataContextValue {
   observations: ObservationReturnTypeWithMetadata[];
   serverScores: WithStringifiedMetadata<ScoreDomain>[];
   mergedScores: WithStringifiedMetadata<ScoreDomain>[];
-  corrections: ScoreDomain[];
   tree: TreeNode;
   nodeMap: Map<string, TreeNode>;
   searchItems: TraceSearchListItem[];
@@ -55,7 +54,6 @@ interface TraceDataProviderProps {
   trace: TraceType;
   observations: ObservationReturnTypeWithMetadata[];
   serverScores: WithStringifiedMetadata<ScoreDomain>[];
-  corrections: ScoreDomain[];
   comments: Map<string, number>;
   children: ReactNode;
 }
@@ -68,7 +66,6 @@ export function TraceDataProvider({
   trace,
   observations,
   serverScores,
-  corrections,
   comments,
   children,
 }: TraceDataProviderProps) {
@@ -94,22 +91,13 @@ export function TraceDataProvider({
       observations,
       serverScores: serverScores,
       mergedScores,
-      corrections,
       tree: uiData.tree,
       nodeMap: uiData.nodeMap,
       searchItems: uiData.searchItems,
       hiddenObservationsCount: uiData.hiddenObservationsCount,
       comments,
     }),
-    [
-      trace,
-      observations,
-      serverScores,
-      mergedScores,
-      corrections,
-      uiData,
-      comments,
-    ],
+    [trace, observations, serverScores, mergedScores, uiData, comments],
   );
 
   return (

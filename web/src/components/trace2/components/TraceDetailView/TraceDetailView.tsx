@@ -12,9 +12,7 @@ import {
   TabsBarTrigger,
 } from "@/src/components/ui/tabs-bar";
 import { Tabs, TabsList, TabsTrigger } from "@/src/components/ui/tabs";
-import { useCallback, useMemo, useState } from "react";
-import { type SelectionData } from "@/src/features/comments/contexts/InlineCommentSelectionContext";
-import { api } from "@/src/utils/api";
+import { useMemo, useState } from "react";
 import {
   Tooltip,
   TooltipContent,
@@ -39,14 +37,11 @@ import { useTraceData } from "@/src/components/trace2/contexts/TraceDataContext"
 import { useViewPreferences } from "@/src/components/trace2/contexts/ViewPreferencesContext";
 import { useSelection } from "@/src/components/trace2/contexts/SelectionContext";
 import { useIsAuthenticatedAndProjectMember } from "@/src/features/auth/hooks";
-import { useCommentedPaths } from "@/src/features/comments/hooks/useCommentedPaths";
-
 // Extracted components
 import { TraceDetailViewHeader } from "./TraceDetailViewHeader";
 import { TraceLogView } from "../TraceLogView/TraceLogView";
 import { TRACE_VIEW_CONFIG } from "@/src/components/trace2/config/trace-view-config";
 import ScoresTable from "@/src/components/table/use-cases/scores";
-import { getMostRecentCorrection } from "@/src/features/corrections/utils/getMostRecentCorrection";
 
 export interface TraceDetailViewProps {
   trace: Omit<WithStringifiedMetadata<TraceDomain>, "input" | "output"> & {
@@ -55,7 +50,6 @@ export interface TraceDetailViewProps {
     output: string | null;
   };
   observations: ObservationReturnTypeWithMetadata[];
-  corrections: ScoreDomain[];
   scores: WithStringifiedMetadata<ScoreDomain>[];
   projectId: string;
 }
@@ -64,27 +58,12 @@ export function TraceDetailView({
   trace,
   observations,
   scores,
-  corrections,
   projectId,
 }: TraceDetailViewProps) {
   // Tab and view state from URL (via SelectionContext)
   const { selectedTab, setSelectedTab } = useSelection();
   const [isPrettyViewAvailable, setIsPrettyViewAvailable] = useState(true);
   const [isJSONBetaVirtualized, setIsJSONBetaVirtualized] = useState(false);
-
-  // Inline comment state
-  const [pendingSelection, setPendingSelection] =
-    useState<SelectionData | null>(null);
-  const [isCommentDrawerOpen, setIsCommentDrawerOpen] = useState(false);
-
-  const handleAddInlineComment = useCallback((selection: SelectionData) => {
-    setPendingSelection(selection);
-    setIsCommentDrawerOpen(true);
-  }, []);
-
-  const handleSelectionUsed = useCallback(() => {
-    setPendingSelection(null);
-  }, []);
 
   // Get jsonViewPreference directly from ViewPreferencesContext for "json-beta" support
   const { jsonViewPreference, setJsonViewPreference } = useViewPreferences();
@@ -108,32 +87,11 @@ export function TraceDetailView({
       metadata: trace.metadata,
     });
 
-  // Fetch comments for this trace (for inline comment highlighting)
-  const traceComments = api.comments.getByObjectId.useQuery(
-    {
-      projectId,
-      objectId: trace.id,
-      objectType: "TRACE",
-    },
-    {
-      refetchOnMount: false,
-    },
-  );
-
-  const commentedPathsByField = useCommentedPaths(traceComments.data);
-
   // Derived state
   const traceScores = useMemo(
     () => scores.filter((s) => !s.observationId),
     [scores],
   );
-
-  const traceCorrections = useMemo(
-    () => corrections.filter((c) => !c.observationId),
-    [corrections],
-  );
-
-  const outputCorrection = getMostRecentCorrection(traceCorrections);
 
   const showLogViewTab = observations.length > 0;
 
@@ -160,10 +118,6 @@ export function TraceDetailView({
         projectId={projectId}
         traceScores={traceScores}
         commentCount={comments.get(trace.id)}
-        pendingSelection={pendingSelection}
-        onSelectionUsed={handleSelectionUsed}
-        isCommentDrawerOpen={isCommentDrawerOpen}
-        onCommentDrawerOpenChange={setIsCommentDrawerOpen}
       />
 
       {/* Tabs section */}
@@ -323,7 +277,6 @@ export function TraceDetailView({
               input={trace.input ?? undefined}
               output={trace.output ?? undefined}
               metadata={trace.metadata ?? undefined}
-              outputCorrection={outputCorrection}
               parsedInput={parsedInput}
               parsedOutput={parsedOutput}
               parsedMetadata={parsedMetadata}
@@ -337,14 +290,8 @@ export function TraceDetailView({
               onOutputExpansionChange={(exp) =>
                 setFieldExpansion("output", exp)
               }
-              enableInlineComments={true}
-              onAddInlineComment={handleAddInlineComment}
-              commentedPathsByField={commentedPathsByField}
               showMetadata
               onVirtualizationChange={setIsJSONBetaVirtualized}
-              projectId={projectId}
-              traceId={trace.id}
-              environment={trace.environment}
             />
           </div>
         </TabsBarContent>

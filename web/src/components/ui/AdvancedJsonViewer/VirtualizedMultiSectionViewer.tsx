@@ -30,12 +30,6 @@ import { useJsonSearch } from "./hooks/useJsonSearch";
 import { useJsonViewerLayout } from "./hooks/useJsonViewerLayout";
 import { searchInTree } from "./utils/searchJson";
 import { useMonospaceCharWidth } from "./hooks/useMonospaceCharWidth";
-import {
-  getCommentRangesForRow,
-  getCommentCountForSection,
-  type CommentedPathsByField,
-} from "./utils/commentRanges";
-import { pathArrayToJsonPath } from "./utils/pathUtils";
 import { type MediaReturnType } from "@/src/features/media/validation";
 
 export interface VirtualizedMultiSectionViewerHandle {
@@ -60,7 +54,6 @@ export interface VirtualizedMultiSectionViewerProps {
   onToggleExpansion?: (nodeId: string) => void;
   scrollContainerRef?: RefObject<HTMLDivElement>;
   media?: MediaReturnType[];
-  commentedPathsByField?: CommentedPathsByField;
 }
 
 export const VirtualizedMultiSectionViewer = memo(
@@ -84,7 +77,6 @@ export const VirtualizedMultiSectionViewer = memo(
       onToggleExpansion,
       scrollContainerRef,
       media,
-      commentedPathsByField,
     },
     ref,
   ) {
@@ -308,12 +300,6 @@ export const VirtualizedMultiSectionViewer = memo(
                 (m) => m.field === node.sectionKey,
               );
 
-              // Get comment count for this section
-              const sectionCommentCount = getCommentCountForSection(
-                node.sectionKey,
-                commentedPathsByField,
-              );
-
               // Render header with fallback chain
               let headerContent;
               if (jsonSection?.renderHeader) {
@@ -329,7 +315,6 @@ export const VirtualizedMultiSectionViewer = memo(
                     title={title}
                     context={sectionContext}
                     media={sectionMedia}
-                    commentCount={sectionCommentCount}
                   />
                 );
               }
@@ -427,14 +412,6 @@ export const VirtualizedMultiSectionViewer = memo(
             const row = treeNodeToFlatRow(node, virtualRow.index);
             const matchCount = matchCounts?.get(row.id);
 
-            // Get comment ranges for this row
-            const commentRanges = getCommentRangesForRow(
-              row,
-              node.sectionKey,
-              commentedPathsByField,
-            );
-            const rowJsonPath = pathArrayToJsonPath(row.pathArray);
-
             return (
               <div
                 key={virtualRow.key}
@@ -503,9 +480,6 @@ export const VirtualizedMultiSectionViewer = memo(
                     enableCopy={enableCopy}
                     stringWrapMode={stringWrapMode}
                     truncateStringsAt={truncateStringsAt}
-                    jsonPath={rowJsonPath}
-                    commentRanges={commentRanges}
-                    sectionKey={node.sectionKey}
                   />
                 </div>
               </div>

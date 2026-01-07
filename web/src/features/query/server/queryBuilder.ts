@@ -33,7 +33,6 @@ type AppliedMetricType = {
   alias?: string;
   relationTable?: string;
   aggs?: Record<string, string>;
-  measureName: string; // Original measure name for lookups
 };
 
 export class QueryBuilder {
@@ -121,7 +120,6 @@ export class QueryBuilder {
         ...view.measures[metric.measure],
         aggregation: metric.aggregation,
         aggs: view.measures[metric.measure].aggs,
-        measureName: metric.measure,
       };
     });
   }
@@ -403,10 +401,10 @@ export class QueryBuilder {
     aggs: Record<string, string>,
   ): string {
     let result = sql;
-    // Replace each @@AGGN@@ placeholder with its corresponding value
-    for (const [placeholder, replacement] of Object.entries(aggs)) {
+    // Replace each @@AGGN@@ placeholder with its corresponding aggregation function
+    for (const [placeholder, aggFunc] of Object.entries(aggs)) {
       const marker = `@@${placeholder.toUpperCase()}@@`;
-      result = result.replaceAll(marker, replacement);
+      result = result.replaceAll(marker, aggFunc);
     }
     return result;
   }

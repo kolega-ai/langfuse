@@ -76,7 +76,6 @@ import { MarkdownContextProvider } from "@/src/features/theming/useMarkdownConte
 import { SupportDrawerProvider } from "@/src/features/support-chat/SupportDrawerProvider";
 import { useLangfuseCloudRegion } from "@/src/features/organizations/hooks";
 import { ScoreCacheProvider } from "@/src/features/scores/contexts/ScoreCacheContext";
-import { CorrectionCacheProvider } from "@/src/features/corrections/contexts/CorrectionCacheContext";
 
 // Check that PostHog is client-side (used to handle Next.js SSR) and that env vars are set
 if (
@@ -143,14 +142,13 @@ const MyApp: AppType<{ session: Session | null }> = ({
                     disableTransitionOnChange
                   >
                     <ScoreCacheProvider>
-                      <CorrectionCacheProvider>
-                        <SupportDrawerProvider defaultOpen={false}>
-                          <AppLayout>
-                            <Component {...pageProps} />
-                            <UserTracking />
-                          </AppLayout>
-                        </SupportDrawerProvider>
-                      </CorrectionCacheProvider>
+                      <SupportDrawerProvider defaultOpen={false}>
+                        <AppLayout>
+                          <Component {...pageProps} />
+                          <UserTracking />
+                        </AppLayout>
+                      </SupportDrawerProvider>
+                      <BetterStackUptimeStatusMessage />
                     </ScoreCacheProvider>
                   </ThemeProvider>
                 </MarkdownContextProvider>
@@ -238,4 +236,17 @@ if (
     console.log("Signal: ", signal);
     return await shutdown(signal);
   });
+}
+
+function BetterStackUptimeStatusMessage() {
+  const { isLangfuseCloud } = useLangfuseCloudRegion();
+  if (!isLangfuseCloud) return null;
+  return (
+    <script
+      src="https://uptime.betterstack.com/widgets/announcement.js"
+      data-id="189328"
+      async={true}
+      type="text/javascript"
+    ></script>
+  );
 }

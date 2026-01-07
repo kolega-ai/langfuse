@@ -23,13 +23,7 @@ import { useMemo } from "react";
 
 export function TracePanelDetail() {
   const { selectedNodeId } = useSelection();
-  const {
-    trace,
-    nodeMap,
-    observations,
-    serverScores: scores,
-    corrections,
-  } = useTraceData();
+  const { trace, nodeMap, observations, serverScores: scores } = useTraceData();
 
   // Memoize to prevent recreation when deps haven't changed
   const content = useMemo(() => {
@@ -67,11 +61,10 @@ export function TracePanelDetail() {
         trace={trace}
         observations={observations}
         scores={scores}
-        corrections={corrections}
         projectId={trace.projectId}
       />
     );
-  }, [selectedNodeId, nodeMap, trace, observations, scores, corrections]);
+  }, [selectedNodeId, nodeMap, trace, observations, scores]);
 
   return (
     <div className="h-full w-full overflow-y-auto bg-background">{content}</div>

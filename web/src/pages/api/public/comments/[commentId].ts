@@ -28,10 +28,7 @@ export default withMiddlewares({
         );
       }
 
-      // Exclude inline positioning fields from public API
-      const { dataField, path, rangeStart, rangeEnd, ...publicComment } =
-        comment;
-      return publicComment;
+      return comment;
     },
   }),
 });

@@ -101,7 +101,7 @@ export const jsonSchemaStringValidator = z.string().refine(
       const parsed = JSON.parse(value);
 
       return isValidJSONSchema(parsed);
-    } catch {
+    } catch (_error) {
       return false;
     }
   },
@@ -120,7 +120,7 @@ const formSchema = z.object({
         JSON.parse(value);
 
         return true;
-      } catch {
+      } catch (_error) {
         return false;
       }
     },

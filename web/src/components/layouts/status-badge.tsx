@@ -32,27 +32,25 @@ export const StatusBadge = ({
   let dotPingColor = "bg-muted-foreground";
   let showDot = isLive;
 
-  const normalizedType = type?.toLowerCase() ?? "";
-
-  if (statusCategories.active.includes(normalizedType)) {
+  if (statusCategories.active.includes(type.toLowerCase())) {
     badgeColor = "bg-light-green text-dark-green";
     dotColor = "animate-ping bg-dark-green";
     dotPingColor = "bg-dark-green";
-  } else if (statusCategories.pending.includes(normalizedType)) {
+  } else if (statusCategories.pending.includes(type.toLowerCase())) {
     badgeColor = "bg-light-yellow text-dark-yellow";
     dotColor = "animate-ping bg-dark-yellow";
     dotPingColor = "bg-dark-yellow";
-  } else if (statusCategories.delayed.includes(normalizedType)) {
+  } else if (statusCategories.delayed.includes(type.toLowerCase())) {
     badgeColor = "bg-light-blue text-dark-blue";
     dotColor = "animate-ping bg-dark-blue";
     dotPingColor = "bg-dark-blue";
-  } else if (statusCategories.error.includes(normalizedType)) {
+  } else if (statusCategories.error.includes(type.toLowerCase())) {
     badgeColor = "bg-light-red text-dark-red";
     showDot = false;
-  } else if (statusCategories.completed.includes(normalizedType)) {
+  } else if (statusCategories.completed.includes(type.toLowerCase())) {
     badgeColor = "bg-light-green text-dark-green";
     showDot = false;
-  } else if (statusCategories.partial.includes(normalizedType)) {
+  } else if (statusCategories.partial.includes(type.toLowerCase())) {
     badgeColor = "bg-light-yellow text-dark-yellow";
     showDot = false;
   }
@@ -81,7 +79,7 @@ export const StatusBadge = ({
           ></span>
         </span>
       )}
-      {showText && type && <span>{type[0].toUpperCase() + type.slice(1)}</span>}
+      {showText && <span>{type[0].toUpperCase() + type.slice(1)}</span>}
       {children}
     </div>
   );

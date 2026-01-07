@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { type Prisma, type ScoreDomain, deepParseJson } from "@langfuse/shared";
+import { type Prisma, deepParseJson } from "@langfuse/shared";
 import { PrettyJsonView } from "@/src/components/ui/PrettyJsonView";
 import { MARKDOWN_RENDER_CHARACTER_LIMIT } from "@/src/utils/constants";
 import { type MediaReturnType } from "@/src/features/media/validation";
@@ -8,7 +8,6 @@ import { useChatMLParser } from "./hooks/useChatMLParser";
 import { ChatMessageList } from "./components/ChatMessageList";
 import { SectionToolDefinitions } from "./components/SectionToolDefinitions";
 import { type ExpansionStateProps } from "./IOPreview";
-import { CorrectedOutputField } from "./components/CorrectedOutputField";
 
 interface JsonInputOutputViewProps {
   parsedInput: unknown;
@@ -80,7 +79,6 @@ export interface IOPreviewPrettyProps extends ExpansionStateProps {
   input?: Prisma.JsonValue;
   output?: Prisma.JsonValue;
   metadata?: Prisma.JsonValue;
-  outputCorrection?: ScoreDomain;
   // Pre-parsed data (optional, from useParsedObservation hook for performance)
   parsedInput?: unknown;
   parsedOutput?: unknown;
@@ -94,10 +92,6 @@ export interface IOPreviewPrettyProps extends ExpansionStateProps {
   hideInput?: boolean;
   // Whether to show metadata section (default: false)
   showMetadata?: boolean;
-  observationId?: string;
-  projectId: string;
-  traceId: string;
-  environment?: string;
 }
 
 /**
@@ -116,7 +110,6 @@ export function IOPreviewPretty({
   input,
   output,
   metadata,
-  outputCorrection,
   parsedInput: preParsedInput,
   parsedOutput: preParsedOutput,
   parsedMetadata: preParsedMetadata,
@@ -132,10 +125,6 @@ export function IOPreviewPretty({
   onInputExpansionChange,
   onOutputExpansionChange,
   showMetadata = false,
-  observationId,
-  projectId,
-  traceId,
-  environment = "default",
 }: IOPreviewPrettyProps) {
   // Use pre-parsed data if available (from useParsedObservation hook),
   // otherwise parse with size/depth limits to prevent UI freeze
@@ -255,29 +244,9 @@ export function IOPreviewPretty({
             messageToToolCallNumbers={messageToToolCallNumbers}
             inputMessageCount={inputMessageCount}
           />
-          <CorrectedOutputField
-            actualOutput={parsedOutput}
-            existingCorrection={outputCorrection}
-            observationId={observationId}
-            projectId={projectId}
-            traceId={traceId}
-            environment={environment}
-          />
         </div>
       ) : (
-        <>
-          <JsonInputOutputView {...jsonViewProps} />
-          <div className="[&_.io-message-content]:px-2 [&_.io-message-header]:px-2">
-            <CorrectedOutputField
-              actualOutput={parsedOutput}
-              existingCorrection={outputCorrection}
-              observationId={observationId}
-              projectId={projectId}
-              traceId={traceId}
-              environment={environment}
-            />
-          </div>
-        </>
+        <JsonInputOutputView {...jsonViewProps} />
       )}
 
       {/* Metadata Section */}

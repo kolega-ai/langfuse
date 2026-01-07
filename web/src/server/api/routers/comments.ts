@@ -94,10 +94,6 @@ export const commentsRouter = createTRPCRouter({
           objectId: input.objectId,
           objectType: input.objectType,
           authorUserId: ctx.session.user.id,
-          dataField: input.dataField ?? null,
-          path: input.path ?? [],
-          rangeStart: input.rangeStart ?? [],
-          rangeEnd: input.rangeEnd ?? [],
         },
       });
 
@@ -205,14 +201,9 @@ export const commentsRouter = createTRPCRouter({
           id: string;
           content: string;
           createdAt: Date;
-          updatedAt: Date;
           authorUserId: string | null;
           authorUserImage: string | null;
           authorUserName: string | null;
-          dataField: string | null;
-          path: string[];
-          rangeStart: number[];
-          rangeEnd: number[];
         }>
       >(
         Prisma.sql`
@@ -220,11 +211,6 @@ export const commentsRouter = createTRPCRouter({
           c.id,
           c.content,
           c.created_at AS "createdAt",
-          c.updated_at AS "updatedAt",
-          c.data_field AS "dataField",
-          c.path,
-          c.range_start AS "rangeStart",
-          c.range_end AS "rangeEnd",
           u.id AS "authorUserId",
           u.image AS "authorUserImage",
           u.name AS "authorUserName"
@@ -412,14 +398,9 @@ export const commentsRouter = createTRPCRouter({
           objectId: string;
           content: string;
           createdAt: Date;
-          updatedAt: Date;
           authorUserId: string | null;
           authorUserImage: string | null;
           authorUserName: string | null;
-          dataField: string | null;
-          path: string[];
-          rangeStart: number[];
-          rangeEnd: number[];
         }>
       >(
         Prisma.sql`
@@ -428,11 +409,6 @@ export const commentsRouter = createTRPCRouter({
             c.object_id AS "objectId",
             c.content,
             c.created_at AS "createdAt",
-            c.updated_at AS "updatedAt",
-            c.data_field AS "dataField",
-            c.path,
-            c.range_start AS "rangeStart",
-            c.range_end AS "rangeEnd",
             u.id AS "authorUserId",
             u.image AS "authorUserImage",
             u.name AS "authorUserName"

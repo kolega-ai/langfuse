@@ -905,7 +905,7 @@ describe("Projects API", () => {
             id: deleteTestApiKeyId,
           },
         });
-      } catch {
+      } catch (_error) {
         // Ignore errors if the API key was already deleted by the test
       }
     });

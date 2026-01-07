@@ -22,7 +22,6 @@ import {
   TracingSearchType,
   type ScoreDomain,
   AGGREGATABLE_SCORE_TYPES,
-  ScoreDataTypeEnum,
 } from "@langfuse/shared";
 import {
   traceException,
@@ -47,7 +46,6 @@ import {
   getTracesGroupedByUsers,
   getTracesGroupedBySessionId,
   updateEvents,
-  getScoresAndCorrectionsForTraces,
 } from "@langfuse/shared/src/server";
 import { TRPCError } from "@trpc/server";
 import { createBatchActionJob } from "@/src/features/table/server/createBatchActionJob";
@@ -61,7 +59,6 @@ import {
   toDomainWithStringifiedMetadata,
   toDomainArrayWithStringifiedMetadata,
 } from "@/src/utils/clientSideDomainTypes";
-import { partition } from "lodash";
 
 const TraceFilterOptions = z.object({
   projectId: z.string(), // Required for protectedProjectProcedure
@@ -354,7 +351,7 @@ export const traceRouter = createTRPCRouter({
           timestamp: input.timestamp ?? input.fromTimestamp ?? undefined,
           includeIO: false,
         }),
-        getScoresAndCorrectionsForTraces({
+        getScoresForTraces({
           projectId: input.projectId,
           traceIds: [input.traceId],
           timestamp: input.timestamp ?? input.fromTimestamp ?? undefined,
@@ -363,14 +360,9 @@ export const traceRouter = createTRPCRouter({
 
       const validatedScores = filterAndValidateDbScoreList({
         scores: traceScores,
-        dataTypes: [...AGGREGATABLE_SCORE_TYPES, ScoreDataTypeEnum.CORRECTION],
+        dataTypes: AGGREGATABLE_SCORE_TYPES,
         onParseError: traceException,
       });
-
-      const [corrections, scores] = partition(
-        validatedScores,
-        (s) => s.dataType === ScoreDataTypeEnum.CORRECTION,
-      );
 
       const obsStartTimes = observations
         .map((o) => o.startTime)
@@ -390,15 +382,14 @@ export const traceRouter = createTRPCRouter({
               : undefined
           : undefined;
 
-      const scoresDomain =
-        toDomainArrayWithStringifiedMetadata<ScoreDomain>(scores);
+      const scores =
+        toDomainArrayWithStringifiedMetadata<ScoreDomain>(validatedScores);
 
       return {
         ...toDomainWithStringifiedMetadata(ctx.trace),
         input: ctx.trace.input ? JSON.stringify(ctx.trace.input) : null,
         output: ctx.trace.output ? JSON.stringify(ctx.trace.output) : null,
-        scores: scoresDomain,
-        corrections,
+        scores,
         latency: latencyMs !== undefined ? latencyMs / 1000 : undefined,
         observations: observations.map((o) => ({
           ...toDomainWithStringifiedMetadata(o),
