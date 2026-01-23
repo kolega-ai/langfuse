@@ -87,8 +87,40 @@ const nextConfig = {
    * @see https://github.com/vercel/next.js/issues/41980
    */
   i18n: {
-    locales: ["en"],
+    /**
+     * Supported locales - must match SUPPORTED_LOCALES in language-utils.ts
+     * 
+     * Security: This is the source of truth for valid locales.
+     * Any locale in URLs must be in this list.
+     */
+    locales: [
+      "en",
+      "es", 
+      "fr",
+      "de",
+      "pt",
+      "zh",
+      "zh-TW",
+      "ja",
+      "ko",
+      "ar",
+      "ru",
+      "it",
+      "nl",
+      "pl",
+      "vi",
+    ],
+    
+    // Default locale when none is detected
     defaultLocale: "en",
+    
+    /**
+     * Locale detection strategy
+     * 
+     * false: No automatic detection, we handle it ourselves for more control
+     * This prevents automatic redirects and gives us full control over language detection
+     */
+    localeDetection: false,
   },
   output: "standalone",
 
@@ -122,6 +154,11 @@ const nextConfig = {
           {
             key: "Permissions-Policy",
             value: "autoplay=*, fullscreen=*, microphone=*",
+          },
+          // Vary header for caching with different languages
+          {
+            key: "Vary",
+            value: "Accept-Language",
           },
           ...(env.SENTRY_CSP_REPORT_URI ? [reportToHeader] : []),
         ],
